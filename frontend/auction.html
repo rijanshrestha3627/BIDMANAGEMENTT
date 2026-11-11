@@ -3,37 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auction Details</title>
+    <title>Auction Details — University Auctions</title>
+    <meta name="description" content="View auction details, current bids and bid history. Place your bid on this listing.">
     <link rel="stylesheet" href="css/style.css">
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
 </head>
 <body>
-    <header>
-        <div class="container header-container">
-            <a href="index.html" class="site-title">University Auctions</a>
-            <nav>
-                <a href="index.html">Auctions</a>
-                <a href="admin.html">Admin</a>
-                <a href="demo.html">Demo</a>
-                <a href="about.html">About</a>
+
+    <!-- ===================== HEADER ===================== -->
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="index.html" class="site-logo" aria-label="University Auctions Home">
+                <span class="logo-mark">
+                    <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 1L13 4V7C13 10.3 10.3 13 7 13C3.7 13 1 10.3 1 7V4L7 1Z"/>
+                    </svg>
+                </span>
+                <span class="logo-text">University Auctions</span>
+            </a>
+
+            <nav class="header-nav" aria-label="Primary navigation">
+                <a href="index.html" class="nav-link">Auctions</a>
+                <a href="about.html#how-it-works" class="nav-link">How It Works</a>
+                <a href="about.html" class="nav-link">About</a>
             </nav>
+
+            <div class="header-actions" id="auth-actions">
+                <a href="login.html" class="nav-link btn btn-secondary btn-sm">Login</a>
+                <a href="register.html" class="nav-link btn btn-primary btn-sm">Register</a>
+            </div>
+
+            <button class="theme-toggle" id="theme-toggle" aria-label="Switch to dark mode" title="Toggle theme">
+                <svg class="theme-icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg class="theme-icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+
+            <button class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
         </div>
+
+        <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
+            <div class="mobile-nav-links">
+                <a href="index.html" class="mobile-nav-link">Auctions</a>
+                <a href="about.html#how-it-works" class="mobile-nav-link">How It Works</a>
+                <a href="about.html" class="mobile-nav-link">About</a>
+            </div>
+        </nav>
     </header>
 
-    <main class="container">
-        <a href="index.html" class="back-link">&larr; Back to Listings</a>
+    <!-- ===================== MAIN ===================== -->
+    <main class="page-main">
+        <div class="container">
+            <a href="index.html" class="back-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                Back to Listings
+            </a>
 
-        <div id="auction-details-container" class="auction-details-card">
-            <p>Loading auction details...</p>
+            <!-- Content injected by auction.js -->
+            <div id="auction-details-container">
+                <div class="empty-state">
+                    <svg class="empty-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="2"/>
+                        <path d="M24 16v8M24 32v.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                    <h3>Loading auction details…</h3>
+                    <p>Fetching the latest data from the auction engine.</p>
+                </div>
+            </div>
         </div>
     </main>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2026 Data Structures and OS Project</p>
+    <!-- ===================== FOOTER ===================== -->
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <span class="footer-brand">University Auctions</span>
+            <div class="footer-links">
+                <a href="index.html">Auctions</a>
+                <a href="about.html">About</a>
+            </div>
+            <span class="footer-copy">© 2026 B.Tech Data Structures &amp; OS Project</span>
         </div>
     </footer>
 
-    <script src="js/api.js"></script>
-    <script src="js/auction.js"></script>
+    <script src="js/theme.js?v=1"></script>
+    <script src="js/api.js?v=2"></script>
+    <script src="js/auth.js?v=2"></script>
+    <script src="js/auction.js?v=2"></script>
+    <script>
+        // Mobile nav toggle
+        const toggle = document.getElementById('nav-toggle');
+        const mobileNav = document.getElementById('mobile-nav');
+        toggle.addEventListener('click', () => {
+            const open = mobileNav.classList.toggle('is-open');
+            toggle.setAttribute('aria-expanded', open);
+        });
+    </script>
 </body>
 </html>

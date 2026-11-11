@@ -3,41 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Auction System</title>
+    <title>University Auctions — Campus Marketplace</title>
+    <meta name="description" content="Bid on student-listed items at University Auctions — a real-time auction platform built on concurrent Java bidding infrastructure.">
     <link rel="stylesheet" href="css/style.css">
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const theme = savedTheme === 'light' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
 </head>
 <body>
-    <header>
-        <div class="container header-container">
-            <a href="index.html" class="site-title">University Auctions</a>
-            <nav>
-                <a href="index.html" class="active">Auctions</a>
-                <a href="admin.html">Admin</a>
-                <a href="demo.html">Demo</a>
-                <a href="about.html">About</a>
+
+    <!-- ===================== HEADER ===================== -->
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="index.html" class="site-logo" aria-label="University Auctions Home">
+                <span class="logo-mark">
+                    <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 1L13 4V7C13 10.3 10.3 13 7 13C3.7 13 1 10.3 1 7V4L7 1Z"/>
+                    </svg>
+                </span>
+                <span class="logo-text">Bid Flow</span>
+            </a>
+
+            <nav class="header-nav" aria-label="Primary navigation">
+                <a href="index.html" class="nav-link active">Auctions</a>
+                <a href="about.html#how-it-works" class="nav-link">How It Works</a>
+                <a href="about.html" class="nav-link">About</a>
             </nav>
+
+            <div class="header-actions" id="auth-actions">
+                <a href="login.html" class="nav-link btn btn-secondary btn-sm">Login</a>
+                <a href="register.html" class="nav-link btn btn-primary btn-sm">Register</a>
+            </div>
+
+            <button class="theme-toggle" id="theme-toggle" aria-label="Switch to dark mode" title="Toggle theme">
+                <svg class="theme-icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg class="theme-icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+
+            <button class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
         </div>
+
+        <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
+            <div class="mobile-nav-links">
+                <a href="index.html" class="mobile-nav-link active">Auctions</a>
+                <a href="about.html#how-it-works" class="mobile-nav-link">How It Works</a>
+                <a href="about.html" class="mobile-nav-link">About</a>
+            </div>
+        </nav>
     </header>
 
-    <main class="container">
-        <section class="status-banner">
-            <span id="api-status" class="badge">Checking system status...</span>
-        </section>
+    <!-- ===================== HERO ===================== -->
+    <section class="hero">
+        <div class="hero-bg" aria-hidden="true"></div>
+        <div class="container">
+            <div class="hero-inner">
+                <p class="hero-eyebrow">BID &nbsp;·&nbsp; DISCOVER &nbsp;·&nbsp; OWN</p>
+                <h1>Every Bid.<br>One Powerful Platform.</h1>
+                <p>A smarter way to discover listings, participate in competitive bidding, and manage every auction.</p>
+                <div class="hero-actions">
+                    <a href="#auction-section" class="btn btn-primary btn-lg">Browse Auctions</a>
+                    <a href="about.html" class="btn btn-ghost btn-lg">Learn More</a>
+                </div>
+            </div>
+        </div>
+    </section>
 
-        <h2>Current Auctions</h2>
+    <!-- ===================== MAIN ===================== -->
+    <main class="page-main" id="auction-section">
+        <div class="container">
+            <div class="status-bar">
+                <span id="api-status" class="system-badge">System Online</span>
+            </div>
 
-        <div id="auction-list" class="auction-grid">
-            <p>Loading auctions...</p>
+            <div class="filter-row">
+                <div class="filter-tabs" role="tablist" aria-label="Auction filter">
+                    <button class="filter-tab active" data-filter="ALL" role="tab" aria-selected="true">All Auctions</button>
+                    <button class="filter-tab" data-filter="ACTIVE" role="tab" aria-selected="false">Active</button>
+                    <button class="filter-tab" data-filter="UPCOMING" role="tab" aria-selected="false">Upcoming</button>
+                    <button class="filter-tab" data-filter="ENDED" role="tab" aria-selected="false">Ended</button>
+                </div>
+                <div class="filter-sort">
+                    <label for="sort-select">Sort by</label>
+                    <select id="sort-select">
+                        <option value="newest">Newest first</option>
+                        <option value="price-high">Price: High → Low</option>
+                        <option value="price-low">Price: Low → High</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="auction-list" class="auction-grid">
+                <div class="empty-state">
+                    <svg class="empty-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="6" y="10" width="36" height="28" rx="3" stroke="currentColor" stroke-width="2"/>
+                        <path d="M16 10V8a2 2 0 012-2h12a2 2 0 012 2v2" stroke="currentColor" stroke-width="2"/>
+                        <path d="M16 22h16M16 30h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <h3>Loading auctions…</h3>
+                    <p>Fetching live listings from the auction engine.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section how-it-works-section" id="how-it-works">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Simple, fair, real-time</h2>
+                    <p>A concurrent Java engine processes every bid the moment it arrives — no polling, no guessing.</p>
+                </div>
+                <div class="steps-grid">
+                    <div class="step-card">
+                        <div class="step-num">01</div>
+                        <h3>Browse listings</h3>
+                        <p>Find student-listed items across all categories. Filter by status or sort by price.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-num">02</div>
+                        <h3>Place a bid</h3>
+                        <p>Enter your name and an amount above the minimum. The Java engine validates and records it instantly.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-num">03</div>
+                        <h3>Win the auction</h3>
+                        <p>The Priority Queue surfaces the highest valid bid at all times. When the auction closes, the top bidder wins.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2026 Data Structures and OS Project</p>
+    <!-- ===================== FOOTER ===================== -->
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <span class="footer-brand">BidFlow — Smart Bid Management System</span>
+            <div class="footer-links">
+                <a href="index.html">Auctions</a>
+                <a href="about.html">About</a>
+            </div>
+            <span class="footer-copy">Bid Smart. Manage Better. Win Bigger.</span>
         </div>
     </footer>
 
-    <script src="js/api.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/theme.js?v=1"></script>
+    <script src="js/api.js?v=2"></script>
+    <script src="js/auth.js?v=2"></script>
+    <script src="js/app.js?v=2"></script>
+    <script>
+        // Mobile nav toggle
+        const toggle = document.getElementById('nav-toggle');
+        const mobileNav = document.getElementById('mobile-nav');
+        toggle.addEventListener('click', () => {
+            const open = mobileNav.classList.toggle('is-open');
+            toggle.setAttribute('aria-expanded', open);
+        });
+    </script>
 </body>
 </html>

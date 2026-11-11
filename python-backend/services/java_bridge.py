@@ -81,6 +81,21 @@ def sync_single_auction_to_java(auction_id):
     }
     return load_auction_in_engine(engine_data)
 
+def remove_auction_from_engine(auction_id):
+    """
+    Remove an auction from the Java engine's memory.
+    """
+    try:
+        resp = requests.post(
+            f"{JAVA_ENGINE_URL}/remove-auction",
+            data=json.dumps({"id": auction_id}),
+            headers={"Content-Type": "application/json"},
+            timeout=5
+        )
+        return resp.json()
+    except requests.ConnectionError:
+        return {"success": False, "message": "Java engine is not running"}
+
 def place_bid_in_engine(auction_id, bidder_name, amount):
     """
     Send a bid to the Java engine for validation.

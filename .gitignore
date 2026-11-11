@@ -1,0 +1,85 @@
+# .gitignore — University Auction Bid Management System
+
+# ─── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyc
+*.pyd
+*.pdb
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+*.so
+
+# ─── Virtual environments ─────────────────────────────────────────────────────
+venv/
+env/
+.venv/
+.env/
+ENV/
+
+# ─── Environment variables (NEVER commit real credentials) ───────────────────
+.env
+.env.local
+.env.production
+.env.staging
+!.env.example
+
+# ─── Database files (SQLite; must not be committed for production) ────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ─── Java compiled output ─────────────────────────────────────────────────────
+*.class
+bin/
+out/
+target/
+*.jar
+
+# ─── Uploaded product images ──────────────────────────────────────────────────
+# We exclude actual uploaded files, but keep the directory structure
+python-backend/uploads/auctions/*
+!python-backend/uploads/auctions/.gitkeep
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── OS-generated ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+
+# ─── IDE / editor ─────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
+
+# ─── Node (if added later) ────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─── Temporary files ─────────────────────────────────────────────────────────
+*.tmp
+*.temp
+.cache/

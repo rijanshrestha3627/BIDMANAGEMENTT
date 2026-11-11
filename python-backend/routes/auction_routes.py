@@ -1,10 +1,16 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app, session
+from routes.auth_routes import require_admin, require_user
+from werkzeug.utils import secure_filename
+import os
+import uuid
 from database.db import get_connection
 from services.java_bridge import (
     load_auction_in_engine, place_bid_in_engine,
     get_auction_status_from_engine, check_java_engine,
-    simulate_concurrent_bids, sync_single_auction_to_java
+    simulate_concurrent_bids, sync_single_auction_to_java,
+    remove_auction_from_engine
 )
+from services import wallet_service
 from datetime import datetime
 import logging
 
@@ -67,6 +73,7 @@ def build_auction_dict(row):
         row["starting_price"] if row["current_highest_bid"] <= 0
         else row["current_highest_bid"] + row["minimum_increment"]
     )
+    keys = row.keys()
     return {
         "id": row["id"],
         "title": row["title"],
@@ -78,9 +85,33 @@ def build_auction_dict(row):
         "start_time": row["start_time"],
         "end_time": row["end_time"],
         "status": status,
-        "created_at": row["created_at"]
+        "created_at": row["created_at"],
+        "image_path": row["image_path"] if "image_path" in keys else None,
+        "bid_count": row["bid_count"] if "bid_count" in keys else None
     }
 
+
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def handle_image_upload(request_files):
+    if 'image' not in request_files:
+        return None, None
+    file = request_files['image']
+    if file.filename == '':
+        return None, None
+    if file and allowed_file(file.filename):
+        # file size checking can be done here or in nginx, but werkzeug takes care of basic safety
+        ext = file.filename.rsplit('.', 1)[1].lower()
+        unique_filename = f"auction_{uuid.uuid4().hex[:8]}.{ext}"
+        upload_folder = current_app.config['UPLOAD_FOLDER']
+        file_path = os.path.join(upload_folder, unique_filename)
+        file.save(file_path)
+        return f"uploads/auctions/{unique_filename}", None
+    return None, "Invalid image format. Allowed: JPG, PNG, WEBP"
 
 # ============================================
 # GET /api/health
@@ -102,7 +133,13 @@ def health_check():
 def get_auctions():
     try:
         conn = get_connection()
-        rows = conn.execute("SELECT * FROM auctions ORDER BY created_at DESC").fetchall()
+        rows = conn.execute("""
+            SELECT a.*, COUNT(b.id) as bid_count
+            FROM auctions a
+            LEFT JOIN bids b ON b.auction_id = a.id
+            GROUP BY a.id
+            ORDER BY a.created_at DESC
+        """).fetchall()
         conn.close()
         return jsonify([build_auction_dict(row) for row in rows])
     except Exception as e:
@@ -128,16 +165,21 @@ def get_auction(auction_id):
 
 
 # ============================================
-# POST /api/auctions — Create a new auction
+# POST /api/admin/auctions — Create a new auction
 # ============================================
-@auction_bp.route('/auctions', methods=['POST'])
+@auction_bp.route('/admin/auctions', methods=['POST'])
+@require_admin
 def create_auction():
-    # Bug Fix #1: safe JSON parsing — get_json() returns None on malformed body
-    data = request.get_json(silent=True)
-    if not data:
-        return jsonify({"error": "Invalid or missing JSON request body"}), 400
+    # Handle multipart/form-data for image uploads
+    if request.content_type.startswith('multipart/form-data'):
+        data = request.form
+        image_path, err = handle_image_upload(request.files)
+        if err:
+            return jsonify({"error": err}), 400
+    else:
+        data = request.get_json(silent=True) or {}
+        image_path = None
 
-    # Validate required fields
     required = ["title", "description", "starting_price", "minimum_increment", "start_time", "end_time"]
     for field in required:
         if field not in data or data[field] == "" or data[field] is None:
@@ -146,10 +188,8 @@ def create_auction():
     title = str(data["title"]).strip()
     description = str(data["description"]).strip()
 
-    if not title:
-        return jsonify({"error": "Title cannot be empty"}), 400
-    if not description:
-        return jsonify({"error": "Description cannot be empty"}), 400
+    if not title or not description:
+        return jsonify({"error": "Title and Description cannot be empty"}), 400
 
     try:
         starting_price = float(data["starting_price"])
@@ -157,31 +197,24 @@ def create_auction():
     except (ValueError, TypeError):
         return jsonify({"error": "Starting price and minimum increment must be numbers"}), 400
 
-    if starting_price <= 0:
-        return jsonify({"error": "Starting price must be greater than 0"}), 400
-    if minimum_increment <= 0:
-        return jsonify({"error": "Minimum increment must be greater than 0"}), 400
+    if starting_price <= 0 or minimum_increment <= 0:
+        return jsonify({"error": "Starting price and minimum increment must be greater than 0"}), 400
 
     start_time = str(data["start_time"]).strip()
     end_time = str(data["end_time"]).strip()
 
-    # Bug Fix #2: Validate datetime formats and end > start on backend
     start_dt = parse_datetime(start_time)
     end_dt = parse_datetime(end_time)
-    if start_dt is None:
-        return jsonify({"error": "Invalid start_time format"}), 400
-    if end_dt is None:
-        return jsonify({"error": "Invalid end_time format"}), 400
-    if end_dt <= start_dt:
-        return jsonify({"error": "End time must be after start time"}), 400
+    if start_dt is None or end_dt is None or end_dt <= start_dt:
+        return jsonify({"error": "Invalid dates. End time must be after start time."}), 400
 
     try:
         conn = get_connection()
         cursor = conn.execute(
             """INSERT INTO auctions (title, description, starting_price, minimum_increment,
-               start_time, end_time, current_highest_bid)
-               VALUES (?, ?, ?, ?, ?, ?, 0)""",
-            (title, description, starting_price, minimum_increment, start_time, end_time)
+               start_time, end_time, current_highest_bid, image_path)
+               VALUES (?, ?, ?, ?, ?, ?, 0, ?)""",
+            (title, description, starting_price, minimum_increment, start_time, end_time, image_path)
         )
         auction_id = cursor.lastrowid
         conn.commit()
@@ -190,29 +223,140 @@ def create_auction():
         logger.error(f"create_auction DB error: {e}")
         return jsonify({"error": "Failed to save auction to database"}), 500
 
-    # Load the auction into the Java engine (best-effort; failure is logged, not fatal)
-    try:
-        engine_data = {
-            "id": auction_id,
-            "title": title,
-            "description": description,
-            "starting_price": starting_price,
-            "minimum_increment": minimum_increment,
-            "current_highest_bid": 0,
-            "start_time_ms": datetime_to_millis(start_time),
-            "end_time_ms": datetime_to_millis(end_time)
-        }
-        load_auction_in_engine(engine_data)
-    except Exception as e:
-        logger.warning(f"Failed to load auction into Java engine: {e}")
+    engine_data = {
+        "id": auction_id,
+        "title": title,
+        "description": description,
+        "starting_price": starting_price,
+        "minimum_increment": minimum_increment,
+        "current_highest_bid": 0,
+        "start_time_ms": datetime_to_millis(start_time),
+        "end_time_ms": datetime_to_millis(end_time)
+    }
+    load_auction_in_engine(engine_data)
 
     return jsonify({"message": "Auction created successfully", "id": auction_id}), 201
 
+# ============================================
+# PUT /api/admin/auctions/<id> - Edit auction
+# ============================================
+@auction_bp.route('/admin/auctions/<int:auction_id>', methods=['PUT'])
+@require_admin
+def edit_auction(auction_id):
+    try:
+        conn = get_connection()
+        auction = conn.execute("SELECT * FROM auctions WHERE id = ?", (auction_id,)).fetchone()
+        if not auction:
+            conn.close()
+            return jsonify({"error": "Auction not found"}), 404
+
+        if request.content_type.startswith('multipart/form-data'):
+            data = request.form
+            image_path, err = handle_image_upload(request.files)
+            if err:
+                conn.close()
+                return jsonify({"error": err}), 400
+        else:
+            data = request.get_json(silent=True) or {}
+            image_path = None
+        
+        # Validation
+        title = str(data.get("title", auction["title"])).strip()
+        description = str(data.get("description", auction["description"])).strip()
+        start_time = str(data.get("start_time", auction["start_time"])).strip()
+        end_time = str(data.get("end_time", auction["end_time"])).strip()
+
+        try:
+            starting_price = float(data.get("starting_price", auction["starting_price"]))
+            minimum_increment = float(data.get("minimum_increment", auction["minimum_increment"]))
+        except (ValueError, TypeError):
+            conn.close()
+            return jsonify({"error": "Prices must be numbers"}), 400
+
+        # Safety rule: If bids exist, we cannot raise the starting_price above current_highest_bid
+        if auction["current_highest_bid"] > 0:
+            if starting_price > auction["current_highest_bid"]:
+                conn.close()
+                return jsonify({"error": "Cannot change starting price above current highest bid because bids exist."}), 400
+
+        start_dt = parse_datetime(start_time)
+        end_dt = parse_datetime(end_time)
+        if start_dt is None or end_dt is None or end_dt <= start_dt:
+            conn.close()
+            return jsonify({"error": "Invalid dates"}), 400
+
+        # Keep existing image if no new one was provided
+        existing_image = auction["image_path"] if "image_path" in auction.keys() else None
+        final_image_path = image_path if image_path else existing_image
+
+        conn.execute(
+            """UPDATE auctions 
+               SET title=?, description=?, starting_price=?, minimum_increment=?, 
+                   start_time=?, end_time=?, image_path=? 
+               WHERE id=?""",
+            (title, description, starting_price, minimum_increment, start_time, end_time, final_image_path, auction_id)
+        )
+        conn.commit()
+        conn.close()
+        
+        # Sync to Java
+        sync_single_auction_to_java(auction_id)
+        return jsonify({"message": "Auction updated successfully"}), 200
+    except Exception as e:
+        logger.error(f"edit_auction error: {e}")
+        return jsonify({"error": "Failed to update auction"}), 500
+
+# ============================================
+# DELETE /api/admin/auctions/<id>
+# ============================================
+@auction_bp.route('/admin/auctions/<int:auction_id>', methods=['DELETE'])
+@require_admin
+def delete_auction(auction_id):
+    try:
+        conn = get_connection()
+        auction = conn.execute("SELECT * FROM auctions WHERE id = ?", (auction_id,)).fetchone()
+        if not auction:
+            conn.close()
+            return jsonify({"error": "Auction not found"}), 404
+
+        status = compute_status(auction["start_time"], auction["end_time"])
+        if status != "ENDED":
+            conn.close()
+            return jsonify({"success": False, "message": "Only ended auctions can be deleted."}), 400
+
+        # 1. Cleanup uploaded image
+        image_path = auction["image_path"] if "image_path" in auction.keys() else None
+        if image_path and image_path.startswith("uploads/"):
+            try:
+                base_dir = os.path.dirname(current_app.config['UPLOAD_FOLDER']) # is uploads/auctions
+                # wait, current_app.config is uploads/auctions, so we need to construct it properly
+                full_path = os.path.join(current_app.root_path, image_path)
+                if os.path.exists(full_path):
+                    os.remove(full_path)
+            except Exception as e:
+                logger.warning(f"Failed to delete image file: {e}")
+
+        # 2. Delete bids
+        conn.execute("DELETE FROM bids WHERE auction_id = ?", (auction_id,))
+        
+        # 3. Delete auction
+        conn.execute("DELETE FROM auctions WHERE id = ?", (auction_id,))
+        conn.commit()
+        conn.close()
+
+        # 4. Remove from Java
+        remove_auction_from_engine(auction_id)
+
+        return jsonify({"success": True, "message": "Auction and bids deleted successfully"}), 200
+    except Exception as e:
+        logger.error(f"delete_auction error: {e}")
+        return jsonify({"success": False, "message": "Internal error deleting auction"}), 500
 
 # ============================================
 # POST /api/auctions/<id>/bids — Place a bid
 # ============================================
 @auction_bp.route('/auctions/<int:auction_id>/bids', methods=['POST'])
+@require_user
 def place_bid(auction_id):
     try:
         conn = get_connection()
@@ -221,21 +365,20 @@ def place_bid(auction_id):
             conn.close()
             return jsonify({"success": False, "message": "Auction not found"}), 404
 
-        # Bug Fix #1: Use silent=True to avoid 400 from Flask on malformed JSON
         data = request.get_json(silent=True)
         if not data:
             conn.close()
             return jsonify({"success": False, "message": "Invalid or missing JSON request body"}), 400
 
-        bidder_name = str(data.get("bidder_name", "")).strip()
-        if not bidder_name:
+        # Get bidder name from user session
+        user_id = session.get("user_id")
+        user = conn.execute("SELECT username FROM users WHERE id = ?", (user_id,)).fetchone()
+        if not user:
             conn.close()
-            return jsonify({"success": False, "message": "Bidder name is required"}), 400
+            return jsonify({"success": False, "message": "User not found"}), 404
+            
+        bidder_name = user["username"]
 
-        # Limit bidder name length to prevent abuse
-        if len(bidder_name) > 100:
-            conn.close()
-            return jsonify({"success": False, "message": "Bidder name too long (max 100 chars)"}), 400
 
         try:
             amount = float(data.get("amount", 0))
@@ -261,27 +404,85 @@ def place_bid(auction_id):
             conn.close()
             return jsonify({"success": False, "message": "Auction has already ended"}), 409
 
+        # ── WALLET CHECK: reserve funds before sending to Java ─────────────────
+        # This check happens before we hit Java to avoid reserving funds for
+        # bids that Java would reject for other reasons (min increment etc.)
+        # We first do a quick available-balance check (non-exclusive), then
+        # after Java accepts, we do the exclusive reservation.
+        wallet_summary = wallet_service.get_wallet_summary(user_id)
+        available = wallet_summary["available"]
+
+        # Determine how much additional funds are needed:
+        # If user already has a reservation for this auction, they only need the delta.
+        from database.db import get_connection as _gc
+        _wconn = _gc()
+        existing_res = _wconn.execute("""
+            SELECT amount FROM wallet_reservations
+            WHERE user_id=? AND auction_id=? AND status='ACTIVE' AND purpose='BID'
+            ORDER BY id DESC LIMIT 1
+        """, (user_id, auction_id)).fetchone()
+        _wconn.close()
+
+        existing_reserved_paise = int(existing_res["amount"]) if existing_res else 0
+        new_bid_paise = wallet_service.rupees_to_paise(amount)
+        additional_needed = wallet_service.paise_to_rupees(
+            max(0, new_bid_paise - existing_reserved_paise)
+        )
+
+        if additional_needed > available:
+            conn.close()
+            return jsonify({
+                "success": False,
+                "message": (
+                    f"Insufficient wallet balance. "
+                    f"You need ₹{additional_needed:,.2f} more. "
+                    f"Available: ₹{available:,.2f}. "
+                    f"Please add funds to your wallet."
+                )
+            }), 400
+        # ──────────────────────────────────────────────────────────────────────
+
+        conn.close()  # Close before Java call to avoid holding connections
+
         # Send bid to Java engine for authoritative validation
         engine_result = place_bid_in_engine(auction_id, bidder_name, amount)
 
         if engine_result.get("success"):
-            conn.execute(
-                "INSERT INTO bids (auction_id, bidder_name, amount) VALUES (?, ?, ?)",
-                (auction_id, bidder_name, amount)
+            # ── Reserve wallet funds (exclusive, atomic) ───────────────────────
+            reserve_result = wallet_service.reserve_for_bid(user_id, auction_id, amount)
+            if not reserve_result.get("success"):
+                # Java accepted but wallet reservation failed — return error
+                # The Java engine's bid will be the latest accepted but we don't
+                # persist to DB; user should retry.
+                logger.error(
+                    f"Wallet reservation failed after Java accepted bid: "
+                    f"user={user_id}, auction={auction_id}, amount={amount}, "
+                    f"error={reserve_result.get('error')}"
+                )
+                return jsonify({
+                    "success": False,
+                    "message": reserve_result.get("error", "Wallet reservation failed")
+                }), 400
+            # ──────────────────────────────────────────────────────────────────
+
+            conn2 = get_connection()
+            conn2.execute(
+                "INSERT INTO bids (auction_id, user_id, bidder_name, amount) VALUES (?, ?, ?, ?)",
+                (auction_id, user_id, bidder_name, amount)
             )
-            conn.execute(
+            conn2.execute(
                 "UPDATE auctions SET current_highest_bid = ? WHERE id = ?",
                 (amount, auction_id)
             )
-            conn.commit()
-            conn.close()
+            conn2.commit()
+            conn2.close()
             return jsonify({
                 "success": True,
                 "message": "Bid accepted",
-                "highestBid": amount
+                "highestBid": amount,
+                "wallet_reserved": reserve_result.get("reserved_total", amount)
             }), 200
         else:
-            conn.close()
             return jsonify({
                 "success": False,
                 "message": engine_result.get("message", "Bid rejected by auction engine")
@@ -370,11 +571,12 @@ def get_auction_queue(auction_id):
 
 
 # ============================================
-# POST /api/demo/seed — Seed demo data
+# POST /api/demo/seed — Seed demo data (ADMIN ONLY)
 # ============================================
 @auction_bp.route('/demo/seed', methods=['POST'])
+@require_admin
 def seed_demo():
-    """Seed standard realistic demo auctions and sync to Java engine."""
+    """Seed standard realistic demo auctions and sync to Java engine. Admin only."""
     from database.db import seed_demo_data
     try:
         seeded = seed_demo_data(force=True)
@@ -389,7 +591,7 @@ def seed_demo():
         return jsonify({"success": True, "message": "Demo data seeded and synced to Java engine."})
     except Exception as e:
         logger.error(f"seed_demo error: {e}")
-        return jsonify({"success": False, "message": str(e)}), 500
+        return jsonify({"success": False, "message": "Internal error seeding demo data"}), 500
 
 
 # ============================================
@@ -411,6 +613,7 @@ def sync_auction_endpoint(auction_id):
 # POST /api/auctions/<id>/start — Force start
 # ============================================
 @auction_bp.route('/auctions/<int:auction_id>/start', methods=['POST'])
+@require_admin
 def start_auction(auction_id):
     try:
         conn = get_connection()
@@ -441,6 +644,7 @@ def start_auction(auction_id):
 # POST /api/auctions/<id>/end — Force end
 # ============================================
 @auction_bp.route('/auctions/<int:auction_id>/end', methods=['POST'])
+@require_admin
 def end_auction(auction_id):
     try:
         conn = get_connection()
@@ -452,10 +656,53 @@ def end_auction(auction_id):
         now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         conn.execute("UPDATE auctions SET end_time = ? WHERE id = ?", (now_str, auction_id))
         conn.commit()
+
+        # Identify winner (highest bid for this auction)
+        winner_bid = conn.execute("""
+            SELECT b.user_id, b.bidder_name, b.amount
+            FROM bids b
+            WHERE b.auction_id = ? AND b.user_id IS NOT NULL
+            ORDER BY b.amount DESC, b.created_at ASC
+            LIMIT 1
+        """, (auction_id,)).fetchone()
+
+        # Get all unique bidders for this auction
+        all_bidders = conn.execute("""
+            SELECT DISTINCT user_id FROM bids
+            WHERE auction_id = ? AND user_id IS NOT NULL
+        """, (auction_id,)).fetchall()
         conn.close()
 
+        settlement_result = None
+        if winner_bid and winner_bid["user_id"]:
+            winning_user_id = winner_bid["user_id"]
+            winning_amount  = winner_bid["amount"]
+
+            # Settle payment for winner (idempotent)
+            ikey = f"WIN-{winning_user_id}-{auction_id}"
+            settlement_result = wallet_service.settle_auction_winner(
+                winning_user_id, auction_id, winning_amount, ikey
+            )
+            if not settlement_result.get("success"):
+                if settlement_result.get("flag_for_review"):
+                    logger.error(
+                        f"WALLET REVIEW REQUIRED: auction={auction_id}, "
+                        f"winner={winning_user_id}, amount={winning_amount}. "
+                        f"Error: {settlement_result.get('error')}"
+                    )
+                # Don't block end_auction — flag but continue
+
+            # Release reservations for all losing bidders
+            for bidder_row in all_bidders:
+                bid_user_id = bidder_row["user_id"]
+                if bid_user_id != winning_user_id:
+                    wallet_service.release_bid_reservation(bid_user_id, auction_id)
+
         sync_single_auction_to_java(auction_id)
-        return jsonify({"message": "Auction ended", "end_time": now_str})
+        response = {"message": "Auction ended", "end_time": now_str}
+        if settlement_result:
+            response["settlement"] = settlement_result
+        return jsonify(response)
     except Exception as e:
         logger.error(f"end_auction error: {e}")
         return jsonify({"error": "Failed to end auction"}), 500
@@ -465,6 +712,7 @@ def end_auction(auction_id):
 # POST /api/auctions/<id>/simulate-concurrent-bids
 # ============================================
 @auction_bp.route('/auctions/<int:auction_id>/simulate-concurrent-bids', methods=['POST'])
+@require_admin
 def simulate_bids(auction_id):
     try:
         conn = get_connection()

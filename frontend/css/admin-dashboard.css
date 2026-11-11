@@ -1,0 +1,617 @@
+/* ==========================================================================
+   ADMIN DASHBOARD — admin-dashboard.css
+   Extends the main style.css design language.
+   ========================================================================== */
+
+/* ── Page Header ─────────────────────────────────────────────────────────── */
+.admin-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 2rem 0 1.5rem;
+    flex-wrap: wrap;
+}
+
+.admin-page-title {
+    font-size: 1.625rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--color-text);
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
+}
+
+.admin-page-sub {
+    font-size: 0.875rem;
+    color: var(--color-text-3);
+    margin: 0;
+}
+
+/* ── Tab Navigation ───────────────────────────────────────────────────────── */
+.admin-tab-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: var(--color-bg-subtle);
+    border: 1px solid var(--color-border);
+    border-radius: var(--r-md);
+    padding: 0.25rem;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.admin-tab {
+    padding: 0.4375rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-3);
+    background: none;
+    border: none;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    transition: color var(--t-base), background var(--t-base), box-shadow var(--t-base);
+    white-space: nowrap;
+}
+
+.admin-tab:hover {
+    color: var(--color-text);
+    background: var(--color-bg-card);
+}
+
+.admin-tab.active {
+    color: var(--color-text);
+    font-weight: 600;
+    background: var(--color-bg-card);
+    box-shadow: var(--shadow-xs);
+}
+
+/* ── Tab Content ──────────────────────────────────────────────────────────── */
+.tab-content {
+    display: none;
+}
+.tab-content.active {
+    display: block;
+}
+
+/* ── Stats Grid ───────────────────────────────────────────────────────────── */
+
+/* Primary metrics row: 4 big cards */
+.stats-primary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Secondary metrics row: up to 5 smaller cards */
+.stats-secondary {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+/* Keep .stats-grid for backward compat but redirect to secondary size */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--r-md);
+    padding: 1.125rem 1.25rem;
+    box-shadow: var(--shadow-xs);
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    transition: box-shadow var(--t-base);
+}
+.stat-card:hover { box-shadow: var(--shadow-sm); }
+
+.stat-card--primary {
+    padding: 1.375rem 1.5rem;
+}
+
+.stat-label {
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-3);
+}
+
+.stat-value {
+    font-size: 1.625rem;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    color: var(--color-text);
+    line-height: 1;
+}
+
+.stat-card--primary .stat-value {
+    font-size: 2rem;
+}
+
+.stat-sub {
+    font-size: 0.6875rem;
+    color: var(--color-text-3);
+}
+
+/* Status-tinted stat cards */
+.stat-card--active {
+    border-color: var(--color-active-bd);
+    background: var(--color-active-bg);
+}
+.stat-card--active .stat-label { color: var(--color-active); }
+.stat-card--active .stat-value { color: var(--color-active); }
+
+.stat-card--upcoming {
+    border-color: var(--color-upcoming-bd);
+    background: var(--color-upcoming-bg);
+}
+.stat-card--upcoming .stat-label { color: var(--color-upcoming); }
+.stat-card--upcoming .stat-value { color: var(--color-upcoming); }
+
+.stat-card--ended {
+    border-color: var(--color-ended-bd);
+    background: var(--color-ended-bg);
+}
+.stat-card--ended .stat-label { color: var(--color-ended); }
+.stat-card--ended .stat-value { color: var(--color-ended); }
+
+/* ── Dashboard Cards ──────────────────────────────────────────────────────── */
+.dashboard-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--r-md);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-xs);
+    margin-bottom: 1.5rem;
+}
+
+.dashboard-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.dashboard-card--wide {
+    grid-column: span 1;
+}
+
+.section-heading {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    color: var(--color-text);
+    margin-bottom: 1.25rem;
+}
+
+.section-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0;
+    flex-wrap: wrap;
+}
+
+/* ── Bid Activity Chart ───────────────────────────────────────────────────── */
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 220px;          /* taller so bars have room to breathe */
+    padding-bottom: 4px;
+}
+
+.chart-loading {
+    color: var(--color-text-3);
+    font-size: 0.875rem;
+    padding: 1rem 0;
+}
+
+/* The SVG chart itself — overflow:visible prevents clipping of labels */
+.admin-bar-chart-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    display: block;
+}
+
+/* ── Auction Status Donut/Bars ────────────────────────────────────────────── */
+.status-chart-container {
+    padding: 0.5rem 0;
+}
+
+.status-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.875rem;
+}
+
+.status-bar-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-text-2);
+    width: 80px;
+    flex-shrink: 0;
+}
+
+.status-bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--color-bg-subtle);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.status-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+}
+
+.status-bar-fill--active   { background: var(--color-active); }
+.status-bar-fill--upcoming { background: var(--color-upcoming); }
+.status-bar-fill--ended    { background: var(--color-ended); }
+
+.status-bar-count {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-text);
+    width: 28px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+/* ── Activity Feed ────────────────────────────────────────────────────────── */
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-height: 340px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--color-border);
+    transition: background var(--t-fast);
+}
+.activity-item:last-child { border-bottom: none; }
+.activity-item:hover { background: var(--color-bg-subtle); margin: 0 -0.25rem; padding-left: 0.25rem; padding-right: 0.25rem; border-radius: var(--r-xs); }
+
+.activity-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--color-bg-subtle);
+    border: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+    color: var(--color-text-2);
+    margin-top: 0.125rem;
+}
+
+.activity-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-msg {
+    font-size: 0.8125rem;
+    color: var(--color-text-2);
+    line-height: 1.45;
+    word-break: break-word;
+}
+
+.activity-time {
+    font-size: 0.6875rem;
+    color: var(--color-text-3);
+    margin-top: 0.2rem;
+    display: block;
+}
+
+/* ── Recent Auctions List ─────────────────────────────────────────────────── */
+.recent-auctions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.recent-auction-row {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--r-sm);
+    background: var(--color-bg-subtle);
+    transition: background var(--t-fast);
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+.recent-auction-row:hover { background: var(--color-bg-card); }
+
+.recent-auction-img {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--r-xs);
+    object-fit: cover;
+    border: 1px solid var(--color-border);
+    flex-shrink: 0;
+    background: var(--color-bg-subtle);
+}
+
+.recent-auction-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.recent-auction-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.recent-auction-meta {
+    font-size: 0.75rem;
+    color: var(--color-text-3);
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.15rem;
+    flex-wrap: wrap;
+}
+
+/* ── Data Tables ──────────────────────────────────────────────────────────── */
+.table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+}
+
+.data-table th {
+    padding: 0.625rem 0.875rem;
+    text-align: left;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--color-text-3);
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+    background: var(--color-bg-subtle);
+}
+
+.data-table td {
+    padding: 0.75rem 0.875rem;
+    color: var(--color-text-2);
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tbody tr:hover td {
+    background: var(--color-bg-subtle);
+}
+
+.table-empty {
+    text-align: center;
+    color: var(--color-text-3);
+    padding: 2rem;
+    font-size: 0.875rem;
+}
+
+.rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    background: var(--color-bg-subtle);
+    color: var(--color-text-2);
+    border: 1px solid var(--color-border);
+}
+
+.rank-badge--gold   { background: #fef9c3; color: #92400e; border-color: #fde68a; }
+.rank-badge--silver { background: #f3f4f6; color: #374151; border-color: #d1d5db; }
+.rank-badge--bronze { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+
+/* ── Pagination ───────────────────────────────────────────────────────────── */
+.pagination-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.page-btn {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border: 1px solid var(--color-border);
+    border-radius: var(--r-sm);
+    background: var(--color-bg-card);
+    color: var(--color-text-2);
+    cursor: pointer;
+    transition: background var(--t-fast), color var(--t-fast);
+}
+.page-btn:hover { background: var(--color-bg-subtle); }
+.page-btn.active {
+    background: var(--color-text);
+    color: #fff;
+    border-color: var(--color-text);
+}
+.page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ── Analytics Stats Row ──────────────────────────────────────────────────── */
+.analytics-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.25rem;
+    margin-top: 0.5rem;
+}
+
+.analytics-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding: 1rem;
+    background: var(--color-bg-subtle);
+    border: 1px solid var(--color-border);
+    border-radius: var(--r-sm);
+}
+
+.analytics-stat-label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-3);
+}
+
+.analytics-stat-value {
+    font-size: 1.375rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--color-text);
+}
+
+/* ── User Search ──────────────────────────────────────────────────────────── */
+.user-search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* ── Admin Auction Row (inside manage auctions) ───────────────────────────── */
+.admin-auction-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    background: var(--color-bg-subtle);
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--r-md);
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.admin-auction-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+.admin-auction-title {
+    font-weight: 600;
+    font-size: 1rem;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.admin-auction-details {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8125rem;
+    color: var(--color-text-2);
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.admin-auction-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .dashboard-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .admin-page-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .admin-tab-bar {
+        justify-content: center;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+
+    .stat-value {
+        font-size: 1.375rem;
+    }
+
+    .section-header-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .user-search-wrap {
+        width: 100%;
+    }
+    .user-search-wrap .form-input {
+        min-width: unset;
+        flex: 1;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 0.5rem 0.625rem;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-tab {
+        padding: 0.375rem 0.625rem;
+        font-size: 0.8125rem;
+    }
+
+    .dashboard-card {
+        padding: 1.125rem;
+    }
+}

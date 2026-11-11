@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile — University Auctions</title>
+    <meta name="description" content="Your auction activity, bid history and account settings on University Auctions.">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/profile.css">
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="index.html" class="site-logo" aria-label="University Auctions Home">
+                <span class="logo-mark">
+                    <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 1L13 4V7C13 10.3 10.3 13 7 13C3.7 13 1 10.3 1 7V4L7 1Z"/>
+                    </svg>
+                </span>
+                <span class="logo-text">University Auctions</span>
+            </a>
+            <nav class="header-nav" aria-label="Primary navigation">
+                <a href="index.html" class="nav-link">Auctions</a>
+                <a href="about.html#how-it-works" class="nav-link">How It Works</a>
+                <a href="about.html" class="nav-link">About</a>
+            </nav>
+            <div class="header-actions" id="auth-actions">
+                <a href="login.html" class="nav-link btn btn-secondary btn-sm">Login</a>
+                <a href="register.html" class="nav-link btn btn-primary btn-sm">Register</a>
+            </div>
+            <button class="theme-toggle" id="theme-toggle" aria-label="Switch to dark mode" title="Toggle theme">
+                <svg class="theme-icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg class="theme-icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+            <button class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+        <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
+            <div class="mobile-nav-links">
+                <a href="index.html" class="mobile-nav-link">Auctions</a>
+                <a href="about.html#how-it-works" class="mobile-nav-link">How It Works</a>
+                <a href="about.html" class="mobile-nav-link">About</a>
+                <a href="profile.html" class="mobile-nav-link active">Profile</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="page-main">
+        <div class="container">
+            <div class="profile-layout">
+
+                <!-- ── LEFT COLUMN: sidebar ─────────────────────────────────── -->
+                <aside class="profile-sidebar">
+                    <!-- Profile header card -->
+                    <div class="profile-header-card">
+                        <div class="profile-avatar" id="profile-avatar">U</div>
+                        <div class="profile-identity">
+                            <h1 class="profile-name" id="profile-username-display">Loading…</h1>
+                            <p class="profile-email" id="profile-email-display">—</p>
+                            <p class="profile-since">Member since <span id="profile-date-display">—</span></p>
+                        </div>
+                        <div class="profile-status-row">
+                            <span class="profile-role-badge" id="profile-role-badge">USER</span>
+                            <span class="profile-email-badge" id="profile-email-badge">Unverified</span>
+                        </div>
+                    </div>
+
+                    <!-- Quick stats compact row -->
+                    <div class="profile-quick-stats" id="profile-quick-stats">
+                        <div class="pqs-item">
+                            <span class="pqs-value" id="pqs-bids">—</span>
+                            <span class="pqs-label">Bids</span>
+                        </div>
+                        <div class="pqs-item">
+                            <span class="pqs-value" id="pqs-auctions">—</span>
+                            <span class="pqs-label">Auctions</span>
+                        </div>
+                        <div class="pqs-item pqs-item--won">
+                            <span class="pqs-value" id="pqs-won">—</span>
+                            <span class="pqs-label">Won</span>
+                        </div>
+                        <div class="pqs-item pqs-item--active">
+                            <span class="pqs-value" id="pqs-active">—</span>
+                            <span class="pqs-label">Active</span>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar nav -->
+                    <nav class="profile-nav" aria-label="Profile sections">
+                        <button class="profile-nav-item active" data-section="activity" id="nav-activity">Auction Activity</button>
+                        <button class="profile-nav-item" data-section="bids" id="nav-bids">Bid History</button>
+                        <button class="profile-nav-item" data-section="analytics" id="nav-analytics">My Analytics</button>
+                        <button class="profile-nav-item" data-section="account" id="nav-account">Account &amp; Security</button>
+                        <a href="wallet.html" class="profile-nav-item" style="text-decoration:none; display:block;">💰 My Wallet</a>
+                    </nav>
+                </aside>
+
+                <!-- ── RIGHT COLUMN: main content ──────────────────────────── -->
+                <div class="profile-main">
+
+                    <!-- ══ SECTION: Auction Activity ══════════════════════════ -->
+                    <section id="section-activity" class="profile-section active" aria-labelledby="nav-activity">
+                        <div class="section-topbar">
+                            <h2 class="section-title">Auction Activity</h2>
+                            <div class="activity-filter-row" id="activity-filters">
+                                <button class="pf-tab active" data-filter="ALL">All</button>
+                                <button class="pf-tab" data-filter="WINNING">Winning</button>
+                                <button class="pf-tab" data-filter="OUTBID">Outbid</button>
+                                <button class="pf-tab" data-filter="WON">Won</button>
+                                <button class="pf-tab" data-filter="LOST">Lost</button>
+                            </div>
+                        </div>
+                        <div id="activity-list" class="activity-cards-list">
+                            <div class="activity-empty-state">
+                                <div class="empty-icon-wrap">🔨</div>
+                                <p>Loading activity…</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ══ SECTION: Bid History ══════════════════════════════ -->
+                    <section id="section-bids" class="profile-section" aria-labelledby="nav-bids">
+                        <div class="section-topbar">
+                            <h2 class="section-title">Bid History</h2>
+                            <div class="sort-select-wrap">
+                                <select id="bid-sort" class="sort-select" aria-label="Sort bids">
+                                    <option value="newest">Newest first</option>
+                                    <option value="oldest">Oldest first</option>
+                                    <option value="highest">Highest bid</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-wrap">
+                            <table class="bid-history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Auction</th>
+                                        <th>My Bid</th>
+                                        <th>Date</th>
+                                        <th>Current Highest</th>
+                                        <th>Status</th>
+                                        <th>Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bid-history-tbody">
+                                    <tr><td colspan="6" class="table-empty">Loading bid history…</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- ══ SECTION: Analytics ════════════════════════════════ -->
+                    <section id="section-analytics" class="profile-section" aria-labelledby="nav-analytics">
+                        <div class="section-topbar">
+                            <h2 class="section-title">My Analytics</h2>
+                        </div>
+
+                        <!-- Stats summary -->
+                        <div class="analytics-stat-grid" id="analytics-stats">
+                            <div class="a-stat-card">
+                                <span class="a-stat-label">Total Bids</span>
+                                <span class="a-stat-value" id="a-total-bids">—</span>
+                            </div>
+                            <div class="a-stat-card">
+                                <span class="a-stat-label">Total Amount Bid</span>
+                                <span class="a-stat-value" id="a-total-amount">—</span>
+                            </div>
+                            <div class="a-stat-card">
+                                <span class="a-stat-label">Highest Bid</span>
+                                <span class="a-stat-value" id="a-highest">—</span>
+                            </div>
+                            <div class="a-stat-card">
+                                <span class="a-stat-label">Auctions Won</span>
+                                <span class="a-stat-value a-stat-value--won" id="a-won">—</span>
+                            </div>
+                        </div>
+
+                        <!-- Bid activity chart -->
+                        <div class="analytics-chart-card">
+                            <h3 class="chart-title">Bid Activity — Last 14 Days</h3>
+                            <div id="user-bid-chart" class="user-chart-container">
+                                <p class="chart-loading-msg">Loading chart…</p>
+                            </div>
+                        </div>
+
+                        <!-- Win/Loss visualization -->
+                        <div class="analytics-chart-card">
+                            <h3 class="chart-title">Auction Results</h3>
+                            <div id="win-loss-chart" class="win-loss-container">
+                                <p class="chart-loading-msg">Loading…</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ══ SECTION: Account & Security ═══════════════════════ -->
+                    <section id="section-account" class="profile-section" aria-labelledby="nav-account">
+                        <div class="section-topbar">
+                            <h2 class="section-title">Account &amp; Security</h2>
+                        </div>
+
+                        <!-- Personal Information -->
+                        <div class="account-block">
+                            <h3 class="account-block-title">Personal Information</h3>
+                            <div class="account-field-row">
+                                <div class="account-field">
+                                    <span class="account-field-label">Username</span>
+                                    <span class="account-field-value" id="info-username">—</span>
+                                </div>
+                                <button class="btn btn-secondary btn-sm" onclick="openModal('username-modal')" aria-label="Change username">Change</button>
+                            </div>
+                            <div class="account-field-row">
+                                <div class="account-field">
+                                    <span class="account-field-label">Email</span>
+                                    <span class="account-field-value" id="info-email">—</span>
+                                </div>
+                                <button class="btn btn-secondary btn-sm" onclick="openModal('email-modal')" aria-label="Change email">Change</button>
+                            </div>
+                            <div class="account-field-row" style="border-bottom:none;">
+                                <div class="account-field">
+                                    <span class="account-field-label">Email Verification</span>
+                                    <span class="account-field-value" id="info-email-status">—</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security -->
+                        <div class="account-block">
+                            <h3 class="account-block-title">Security</h3>
+                            <div class="account-field-row" style="border-bottom:none;">
+                                <div class="account-field">
+                                    <span class="account-field-label">Password</span>
+                                    <span class="account-field-value" style="color:var(--color-text-3);">••••••••</span>
+                                </div>
+                                <button class="btn btn-secondary btn-sm" onclick="openModal('password-modal')" aria-label="Change password">Change</button>
+                            </div>
+                        </div>
+
+                        <!-- Account actions -->
+                        <div class="account-block" style="border-bottom:none;">
+                            <h3 class="account-block-title">Account Actions</h3>
+                            <button class="btn btn-secondary" onclick="handleLogout()">Logout</button>
+                        </div>
+                    </section>
+
+                </div><!-- /profile-main -->
+            </div><!-- /profile-layout -->
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <span class="footer-brand">University Auctions</span>
+            <div class="footer-links">
+                <a href="index.html">Auctions</a>
+                <a href="about.html">About</a>
+            </div>
+            <span class="footer-copy">© 2026 B.Tech Data Structures &amp; OS Project</span>
+        </div>
+    </footer>
+
+    <!-- ── Username Modal ──────────────────────────────────────────────────── -->
+    <div class="modal" id="username-modal" role="dialog" aria-modal="true" aria-labelledby="um-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="um-title">Change Username</h3>
+                <button class="modal-close" onclick="closeModal('username-modal')" aria-label="Close">&times;</button>
+            </div>
+            <div id="username-msg"></div>
+            <div class="form-group">
+                <label for="new-username-input">New Username</label>
+                <input type="text" id="new-username-input" class="form-input" autocomplete="username">
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" style="flex:1;" onclick="closeModal('username-modal')">Cancel</button>
+                <button class="btn btn-primary" style="flex:1;" id="btn-save-username" onclick="saveUsername()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Email Modal (2-step) ────────────────────────────────────────────── -->
+    <div class="modal" id="email-modal" role="dialog" aria-modal="true" aria-labelledby="em-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="em-title">Change Email</h3>
+                <button class="modal-close" onclick="closeModal('email-modal')" aria-label="Close">&times;</button>
+            </div>
+            <div id="email-msg"></div>
+            <div id="email-step-1">
+                <div class="form-group">
+                    <label for="new-email-input">New Email Address</label>
+                    <input type="email" id="new-email-input" class="form-input" autocomplete="email">
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary" style="flex:1;" onclick="closeModal('email-modal')">Cancel</button>
+                    <button class="btn btn-primary" style="flex:1;" id="btn-request-email" onclick="requestEmailChange()">Send Code</button>
+                </div>
+            </div>
+            <div id="email-step-2" class="hidden">
+                <p class="text-muted" style="font-size:0.875rem; margin-bottom:1rem; text-align: center;">We sent a 6-digit code to:<br><strong id="otp-email-target"></strong></p>
+                <div class="form-group" style="text-align: center;">
+                    <label for="email-otp-input" class="sr-only">Verification Code</label>
+                    <input type="text" id="email-otp-input" class="form-input otp-input" placeholder="000000" maxlength="6" autocomplete="one-time-code" style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5em; font-family: monospace;">
+                </div>
+                <div style="text-align: center; margin-bottom: 1rem; font-size: 0.875rem;">
+                    <span class="text-muted" id="otp-timer-text">Code expires in 10:00</span>
+                </div>
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-resend-email" onclick="resendEmailOtp()" disabled>Resend code (60s)</button>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary" style="flex:1;" onclick="closeModal('email-modal')">Cancel</button>
+                    <button class="btn btn-primary" style="flex:1;" id="btn-verify-email" onclick="verifyEmailChange()">Verify</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Password Modal ─────────────────────────────────────────────────── -->
+    <div class="modal" id="password-modal" role="dialog" aria-modal="true" aria-labelledby="pm-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="pm-title">Change Password</h3>
+                <button class="modal-close" onclick="closeModal('password-modal')" aria-label="Close">&times;</button>
+            </div>
+            <div id="password-msg"></div>
+            <div class="form-group">
+                <label for="current-password-input">Current Password</label>
+                <input type="password" id="current-password-input" class="form-input" autocomplete="current-password">
+            </div>
+            <div class="form-group">
+                <label for="new-password-input">New Password</label>
+                <input type="password" id="new-password-input" class="form-input" autocomplete="new-password">
+            </div>
+            <div class="form-group">
+                <label for="confirm-password-input">Confirm New Password</label>
+                <input type="password" id="confirm-password-input" class="form-input" autocomplete="new-password">
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" style="flex:1;" onclick="closeModal('password-modal')">Cancel</button>
+                <button class="btn btn-primary" style="flex:1;" id="btn-save-password" onclick="savePassword()">Change Password</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/theme.js?v=1"></script>
+    <script src="js/api.js?v=4"></script>
+    <script src="js/auth.js?v=4"></script>
+    <script src="js/profile.js?v=4"></script>
+    <script>
+        // Mobile nav
+        const toggle = document.getElementById('nav-toggle');
+        const mobileNav = document.getElementById('mobile-nav');
+        toggle.addEventListener('click', () => {
+            const open = mobileNav.classList.toggle('is-open');
+            toggle.setAttribute('aria-expanded', open);
+        });
+        // ESC closes modals
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                ['username-modal', 'email-modal', 'password-modal'].forEach(id => {
+                    document.getElementById(id)?.classList.remove('active');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

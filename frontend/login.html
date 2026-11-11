@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — University Auctions</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    <style>
+        .auth-container {
+            max-width: 400px;
+            margin: 4rem auto;
+            padding: 2rem;
+            background: var(--color-bg-card);
+            border-radius: var(--r-lg);
+            border: 1px solid var(--color-border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .auth-header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .auth-form .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .auth-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--color-text-2);
+        }
+        .auth-form input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--r-md);
+            background: var(--color-bg-subtle);
+            color: var(--color-text);
+        }
+        .auth-form input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.15);
+        }
+        .auth-links {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+        .auth-links a {
+            color: var(--color-primary);
+            text-decoration: none;
+        }
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="index.html" class="site-logo">
+                <span class="logo-mark">
+                    <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 1L13 4V7C13 10.3 10.3 13 7 13C3.7 13 1 10.3 1 7V4L7 1Z"/>
+                    </svg>
+                </span>
+                <span class="logo-text">University Auctions</span>
+            </a>
+            <nav class="header-nav">
+                <a href="index.html" class="nav-link">Auctions</a>
+                <a href="about.html" class="nav-link">About</a>
+            </nav>
+            <div class="header-actions" id="auth-actions">
+                <a href="login.html" class="nav-link btn btn-secondary btn-sm active">Login</a>
+                <a href="register.html" class="nav-link btn btn-primary btn-sm">Register</a>
+            </div>
+            <button class="theme-toggle" id="theme-toggle" aria-label="Switch to dark mode" title="Toggle theme">
+                <svg class="theme-icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg class="theme-icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="page-main">
+        <div class="container">
+            <div class="auth-container">
+                <div class="auth-header">
+                    <h1>Welcome Back</h1>
+                    <p class="text-muted">Sign in to place bids and track auctions.</p>
+                </div>
+                
+                <div id="login-message"></div>
+                
+                <form class="auth-form" id="login-form">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" required placeholder="student@university.edu">
+                    </div>
+                    <div class="form-group">
+                        <div style="display:flex; justify-content:space-between;">
+                            <label for="password">Password</label>
+                            <a href="#" style="font-size:0.875rem; color:var(--color-primary);" onclick="openForgotModal(event)">Forgot Password?</a>
+                        </div>
+                        <input type="password" id="password" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full" id="login-btn">Sign In</button>
+                </form>
+                
+                <div class="auth-links">
+                    <p>Don't have an account? <a href="register.html">Register here</a></p>
+                    <p style="margin-top:0.5rem;"><a href="admin-login.html" class="text-muted">Admin Login</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forgot Password Modal -->
+        <div class="modal" id="forgot-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+            <div class="modal-content" style="background:var(--color-bg-card); padding:2rem; border-radius:var(--r-lg); width:100%; max-width:400px;">
+                <h3 style="margin-top:0;">Reset Password</h3>
+                <div id="forgot-msg"></div>
+                
+                <div id="forgot-step-1">
+                    <div class="form-group" style="margin-bottom:1rem;">
+                        <label style="display:block; margin-bottom:0.5rem;">Registered Email</label>
+                        <input type="email" id="forgot-email" style="width:100%; padding:0.75rem; border:1px solid var(--color-border); border-radius:var(--r-md); background:var(--color-bg-subtle);">
+                    </div>
+                    <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+                        <button class="btn btn-outline" style="flex:1;" onclick="closeForgotModal()">Cancel</button>
+                        <button class="btn btn-primary" style="flex:1;" id="btn-forgot-request" onclick="requestReset()">Send Code</button>
+                    </div>
+                </div>
+
+                <div id="forgot-step-2" style="display:none;">
+                    <p class="text-muted" style="font-size:0.875rem; margin-bottom:1rem; text-align: center;">We sent a 6-digit code to:<br><strong id="forgot-email-target"></strong></p>
+                    <div class="form-group" style="text-align: center; margin-bottom:1rem;">
+                        <label style="display:block; margin-bottom:0.5rem;" class="sr-only">Verification Code</label>
+                        <input type="text" id="forgot-otp" placeholder="000000" maxlength="6" autocomplete="one-time-code" style="width:100%; max-width:200px; padding:0.75rem; border:1px solid var(--color-border); border-radius:var(--r-md); background:var(--color-bg-subtle); text-align: center; font-size: 1.5rem; letter-spacing: 0.5em; font-family: monospace;">
+                    </div>
+                    <div style="text-align: center; margin-bottom: 1rem; font-size: 0.875rem;">
+                        <span class="text-muted" id="forgot-timer-text">Code expires in 10:00</span>
+                    </div>
+                    <div style="text-align: center; margin-bottom: 1rem;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="btn-resend-forgot" onclick="resendForgotOtp()" disabled>Resend code (60s)</button>
+                    </div>
+                    <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+                        <button class="btn btn-outline" style="flex:1;" onclick="closeForgotModal()">Cancel</button>
+                        <button class="btn btn-primary" style="flex:1;" id="btn-forgot-verify" onclick="verifyReset()">Verify</button>
+                    </div>
+                </div>
+
+                <div id="forgot-step-3" style="display:none;">
+                    <div class="form-group" style="margin-bottom:1rem;">
+                        <label style="display:block; margin-bottom:0.5rem;">New Password</label>
+                        <input type="password" id="forgot-new-pass" style="width:100%; padding:0.75rem; border:1px solid var(--color-border); border-radius:var(--r-md); background:var(--color-bg-subtle);">
+                    </div>
+                    <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+                        <button class="btn btn-outline" style="flex:1;" onclick="closeForgotModal()">Cancel</button>
+                        <button class="btn btn-primary" style="flex:1;" id="btn-forgot-complete" onclick="completeReset()">Reset Password</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/theme.js?v=1"></script>
+    <script src="js/api.js?v=2"></script>
+    <script src="js/auth.js?v=2"></script>
+    <script>
+        let forgotOtpInterval = null;
+
+        function openForgotModal(e) {
+            e.preventDefault();
+            document.getElementById('forgot-modal').style.display = 'flex';
+            document.getElementById('forgot-email').value = document.getElementById('email').value;
+            document.getElementById('forgot-step-1').style.display = 'block';
+            document.getElementById('forgot-step-2').style.display = 'none';
+            document.getElementById('forgot-step-3').style.display = 'none';
+            showForgotMsg('', '');
+            if (forgotOtpInterval) clearInterval(forgotOtpInterval);
+        }
+
+        function closeForgotModal() {
+            document.getElementById('forgot-modal').style.display = 'none';
+            if (forgotOtpInterval) clearInterval(forgotOtpInterval);
+        }
+
+        function showForgotMsg(text, type) {
+            const el = document.getElementById('forgot-msg');
+            el.textContent = text;
+            el.className = 'alert ' + (type === 'success' ? 'alert-success' : 'alert-error');
+            el.style.display = text ? 'block' : 'none';
+            el.style.marginBottom = text ? '1rem' : '0';
+        }
+
+        async function requestReset() {
+            const email = document.getElementById('forgot-email').value;
+            if(!email.trim()) return showForgotMsg('Email required', 'error');
+            const btn = document.getElementById('btn-forgot-request');
+            btn.disabled = true; btn.textContent = 'Sending...';
+            
+            const res = await api.requestPasswordReset(email);
+            if(res.success) {
+                showForgotMsg(res.message, 'success');
+                document.getElementById('forgot-email-target').textContent = email;
+                setTimeout(() => {
+                    document.getElementById('forgot-step-1').style.display = 'none';
+                    document.getElementById('forgot-step-2').style.display = 'block';
+                    document.getElementById('forgot-otp').value = '';
+                    document.getElementById('forgot-otp').focus();
+                    startForgotOtpTimer();
+                    showForgotMsg('', '');
+                }, 2000);
+            } else {
+                showForgotMsg(res.error, 'error');
+                btn.disabled = false; btn.textContent = 'Send Code';
+            }
+        }
+
+        function startForgotOtpTimer() {
+            if (forgotOtpInterval) clearInterval(forgotOtpInterval);
+            const btnResend = document.getElementById('btn-resend-forgot');
+            const timerText = document.getElementById('forgot-timer-text');
+            let timeLeft = 600;
+            let resendCooldown = 60;
+
+            btnResend.disabled = true;
+
+            forgotOtpInterval = setInterval(() => {
+                timeLeft--;
+                resendCooldown--;
+
+                if (timeLeft <= 0) {
+                    clearInterval(forgotOtpInterval);
+                    timerText.textContent = 'Code expired';
+                    btnResend.textContent = 'Resend code';
+                    btnResend.disabled = false;
+                    return;
+                }
+
+                const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+                const s = (timeLeft % 60).toString().padStart(2, '0');
+                timerText.textContent = `Code expires in ${m}:${s}`;
+
+                if (resendCooldown > 0) {
+                    btnResend.textContent = `Resend code (${resendCooldown}s)`;
+                    btnResend.disabled = true;
+                } else {
+                    btnResend.textContent = 'Resend code';
+                    btnResend.disabled = false;
+                }
+            }, 1000);
+        }
+
+        async function resendForgotOtp() {
+            const btn = document.getElementById('btn-resend-forgot');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            showForgotMsg('', '');
+
+            const email = document.getElementById('forgot-email').value;
+            const res = await api.requestPasswordReset(email);
+            
+            if (res.success) {
+                showForgotMsg('New code sent!', 'success');
+                document.getElementById('forgot-otp').value = '';
+                document.getElementById('forgot-otp').focus();
+                startForgotOtpTimer();
+            } else {
+                showForgotMsg(res.error || 'Failed to resend', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Resend code';
+            }
+        }
+
+        async function verifyReset() {
+            const email = document.getElementById('forgot-email').value;
+            const otp = document.getElementById('forgot-otp').value;
+            if(!otp.trim()) return showForgotMsg('OTP required', 'error');
+            const btn = document.getElementById('btn-forgot-verify');
+            btn.disabled = true; btn.textContent = 'Verifying...';
+
+            const res = await api.verifyPasswordReset(email, otp);
+            if(res.success) {
+                showForgotMsg('Verified.', 'success');
+                setTimeout(() => {
+                    document.getElementById('forgot-step-2').style.display = 'none';
+                    document.getElementById('forgot-step-3').style.display = 'block';
+                    showForgotMsg('', '');
+                }, 1000);
+            } else {
+                showForgotMsg(res.error, 'error');
+                btn.disabled = false; btn.textContent = 'Verify';
+            }
+        }
+
+        async function completeReset() {
+            const email = document.getElementById('forgot-email').value;
+            const otp = document.getElementById('forgot-otp').value;
+            const np = document.getElementById('forgot-new-pass').value;
+            if(!np) return showForgotMsg('New password required', 'error');
+            const btn = document.getElementById('btn-forgot-complete');
+            btn.disabled = true; btn.textContent = 'Resetting...';
+
+            const res = await api.completePasswordReset(email, otp, np);
+            if(res.success) {
+                showForgotMsg('Password updated! You can now login.', 'success');
+                setTimeout(() => {
+                    closeForgotModal();
+                    document.getElementById('password').value = '';
+                }, 2000);
+            } else {
+                showForgotMsg(res.error, 'error');
+                btn.disabled = false; btn.textContent = 'Reset Password';
+            }
+        }
+    </script>
+</body>
+</html>

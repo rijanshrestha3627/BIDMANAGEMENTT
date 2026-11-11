@@ -46,6 +46,7 @@ public class AuctionServer {
 
         server.createContext("/health", new HealthHandler());
         server.createContext("/load-auction", new LoadAuctionHandler());
+        server.createContext("/remove-auction", new RemoveAuctionHandler());
         server.createContext("/place-bid", new PlaceBidHandler());
         server.createContext("/auction-status", new AuctionStatusHandler());
         server.createContext("/get-bids", new GetBidsHandler());
@@ -128,6 +129,30 @@ public class AuctionServer {
             } catch (Exception e) {
                 sendResponse(exchange, 400,
                     "{\"success\":false,\"message\":\"Invalid auction data: " + escapeJson(e.getMessage()) + "\"}");
+            }
+        }
+    }
+
+    /**
+     * POST /remove-auction
+     */
+    class RemoveAuctionHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"POST".equals(exchange.getRequestMethod())) {
+                sendResponse(exchange, 405, "{\"error\":\"Method not allowed\"}");
+                return;
+            }
+
+            String body = readBody(exchange);
+
+            try {
+                int id = getIntValue(body, "id");
+                manager.removeAuction(id);
+
+                sendResponse(exchange, 200, "{\"success\":true,\"message\":\"Auction removed from engine\"}");
+            } catch (Exception e) {
+                sendResponse(exchange, 400, "{\"success\":false,\"message\":\"Invalid request data\"}");
             }
         }
     }
